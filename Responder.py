@@ -51,11 +51,11 @@ parser.add_option('-N', '--AnswerName',	   action="store",      help="Specifies 
 parser.add_option('-E', '--ErrorCode',     action="store_true",      help="Changes the error code returned by the SMB server to STATUS_LOGON_FAILURE. By default, the status is STATUS_ACCESS_DENIED. Changing this value permits to obtain WebDAV authentications from the poisoned machines where the WebClient service is running.", dest="ErrorCode", default=False)
 options, args = parser.parse_args()
 
-if not os.geteuid() == 0:
-    print(color("[!] Responder must be run as root."))
+if not IsWindowsAdmin():
+    print(color("[!] Responder must be run as administrator."))
     sys.exit(-1)
-elif options.OURIP == None and IsOsX() == True:
-    print("\n\033[1m\033[31mOSX detected, -i mandatory option is missing\033[0m\n")
+elif options.OURIP == None and IsWindows() == True:
+    print("\n\033[1m\033[31mWindows detected, -i mandatory option is missing\033[0m\n")
     parser.print_help()
     exit(-1)
     
@@ -82,14 +82,10 @@ class ThreadingUDPServer(ThreadingMixIn, UDPServer):
 				if settings.Config.Bind_To_ALL:
 					pass
 				else:
-					if (sys.version_info > (3, 0)):
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, bytes(settings.Config.Interface+'\0', 'utf-8'))
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-					else:
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, settings.Config.Interface+'\0')
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
+					# Windows doesn't support SO_BINDTODEVICE the same way
+					# Skip interface binding for Windows, rely on IP binding instead
+					if Have_IPv6:
+						self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
 			except:
 				pass
 		UDPServer.server_bind(self)
@@ -101,14 +97,10 @@ class ThreadingTCPServer(ThreadingMixIn, TCPServer):
 				if settings.Config.Bind_To_ALL:
 					pass
 				else:
-					if (sys.version_info > (3, 0)):
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, bytes(settings.Config.Interface+'\0', 'utf-8'))
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-					else:
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, settings.Config.Interface+'\0')
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
+					# Windows doesn't support SO_BINDTODEVICE the same way
+					# Skip interface binding for Windows, rely on IP binding instead
+					if Have_IPv6:
+						self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
 			except:
 				pass
 		TCPServer.server_bind(self)
@@ -120,14 +112,10 @@ class ThreadingTCPServerAuth(ThreadingMixIn, TCPServer):
 				if settings.Config.Bind_To_ALL:
 					pass
 				else:
-					if (sys.version_info > (3, 0)):
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, bytes(settings.Config.Interface+'\0', 'utf-8'))
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-					else:
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, settings.Config.Interface+'\0')
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
+					# Windows doesn't support SO_BINDTODEVICE the same way
+					# Skip interface binding for Windows, rely on IP binding instead
+					if Have_IPv6:
+						self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
 			except:
 				pass
 		self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
@@ -155,14 +143,10 @@ class ThreadingUDPMDNSServer(ThreadingMixIn, UDPServer):
 				if settings.Config.Bind_To_ALL:
 					pass
 				else:
-					if (sys.version_info > (3, 0)):
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, bytes(settings.Config.Interface+'\0', 'utf-8'))
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-					else:
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, settings.Config.Interface+'\0')
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
+					# Windows doesn't support SO_BINDTODEVICE the same way
+					# Skip interface binding for Windows, rely on IP binding instead
+					if Have_IPv6:
+						self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
 			except:
 				pass
 		UDPServer.server_bind(self)
@@ -184,14 +168,10 @@ class ThreadingUDPLLMNRServer(ThreadingMixIn, UDPServer):
 				if settings.Config.Bind_To_ALL:
 					pass
 				else:
-					if (sys.version_info > (3, 0)):
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, bytes(settings.Config.Interface+'\0', 'utf-8'))
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-					else:
-						self.socket.setsockopt(socket.SOL_SOCKET, 25, settings.Config.Interface+'\0')
-						if Have_IPv6:
-							self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
+					# Windows doesn't support SO_BINDTODEVICE the same way
+					# Skip interface binding for Windows, rely on IP binding instead
+					if Have_IPv6:
+						self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
 			except:
 				pass
 		UDPServer.server_bind(self)

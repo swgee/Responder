@@ -38,7 +38,10 @@ except:
 from calendar import timegm
 
 def if_nametoindex2(name):
-	if settings.Config.PY2OR3 == "PY2":
+	if IsWindows():
+		# For Windows, return a dummy index since we don't use SO_BINDTODEVICE
+		return 1
+	elif settings.Config.PY2OR3 == "PY2":
 		import ctypes
 		import ctypes.util
 		libc = ctypes.CDLL(ctypes.util.find_library('c'))
@@ -179,11 +182,24 @@ def RespondWithIP6():
 
 def OsInterfaceIsSupported():
 	if settings.Config.Interface != "Not set":
-		return not IsOsX()
+		return IsWindows()
 	return False
 
 def IsOsX():
 	return sys.platform == "darwin"
+
+def IsWindows():
+	return sys.platform == "win32" or os.name == "nt"
+
+def IsWindowsAdmin():
+	"""Check if running with administrator privileges on Windows"""
+	if not IsWindows():
+		return False
+	try:
+		import ctypes
+		return ctypes.windll.shell32.IsUserAnAdmin()
+	except:
+		return False
 
 def IsIPv6IP(IP):
 	if IP == None:
@@ -200,7 +216,16 @@ def FindLocalIP(Iface, OURIP):
 		return '0.0.0.0'
 
 	try:
-		if IsOsX():
+		if IsWindows():
+			if OURIP:
+				return OURIP
+			# For Windows, get the default local IP
+			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+			s.connect(("8.8.8.8", 80))
+			ret = s.getsockname()[0]
+			s.close()
+			return ret
+		elif IsOsX():
 			return OURIP
 			
 		elif IsIPv6IP(OURIP):	
@@ -243,6 +268,22 @@ def FindLocalIP6(Iface, OURIP):
 		return '::'
 
 	try:
+		if IsWindows():
+			if IsIPv6IP(OURIP):
+				return OURIP
+			# For Windows IPv6, try to get a link-local address
+			try:
+				# Get all network interfaces on Windows
+				import subprocess
+				result = subprocess.run(['powershell', '-Command', 
+					'Get-NetIPAddress -AddressFamily IPv6 | Where-Object {$_.AddressState -eq "Preferred"} | Select-Object -First 1 -ExpandProperty IPAddress'], 
+					capture_output=True, text=True, shell=True)
+				if result.returncode == 0 and result.stdout.strip():
+					return result.stdout.strip()
+				else:
+					return '::1'
+			except:
+				return '::1'
 
 		if IsIPv6IP(OURIP) == False:
 			

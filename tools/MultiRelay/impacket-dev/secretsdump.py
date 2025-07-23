@@ -41,7 +41,7 @@
 # https://insecurety.net/?p=768
 # http://www.beginningtoseethelight.org/ntsecurity/index.htm
 # https://www.exploit-db.com/docs/english/18244-active-domain-offline-hash-dump-&-forensic-analysis.pdf
-# https://www.passcape.com/index.php?section=blog&cmd=details&id=15
+# https://www.passcape.com/index.php?section=blog&cmd=details&id=15 asdfasdfasdf
 #
 from __future__ import division
 from __future__ import print_function

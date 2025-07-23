@@ -1,14 +1,16 @@
-# Responder/MultiRelay #
+# Responder/MultiRelay - Windows Edition #
 
-IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner and NTLMv1/2 Relay.
+IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner and NTLMv1/2 Relay for Windows.
 
 Author: Laurent Gaffie <laurent.gaffie@gmail.com >  https://g-laurent.blogspot.com
 
+## IMPORTANT NOTICE ##
 
+This version has been modified to work exclusively on Windows. It is not compatible with Unix/Linux systems.
 
 ## Intro ##
 
-Responder is an LLMNR, NBT-NS and MDNS poisoner. 
+Responder is an LLMNR, NBT-NS and MDNS poisoner designed specifically for Windows environments. 
 
 ## Features ##
 
@@ -87,41 +89,51 @@ Log files are located in the "logs/" folder. Hashes will be logged and printed o
 Additionally, all captured hashed are logged into an SQLite database which you can configure in Responder.conf
 
 
+## Windows Requirements ##
+
+- This tool is designed to work exclusively on Windows 10/11 and Windows Server 2016+.
+- Administrator privileges are required to run this tool.
+- Python 3.7+ must be installed with the required dependencies.
+
+## Installation ##
+
+1. Install Python 3.7+ from https://python.org
+2. Install required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+3. Run as Administrator
+
 ## Considerations ##
 
 - This tool listens on several ports: UDP 137, UDP 138, UDP 53, UDP/TCP 389,TCP 1433, UDP 1434, TCP 80, TCP 135, TCP 139, TCP 445, TCP 21, TCP 3141,TCP 25, TCP 110, TCP 587, TCP 3128, Multicast UDP 5355 and 5353.
 
-- If you run Samba on your system, stop smbd and nmbd and all other services listening on these ports.
+- Some Windows services may conflict with Responder. The Windows_launcher.bat script will automatically stop/start conflicting services.
 
-- For Ubuntu users:
-
-Edit this file /etc/NetworkManager/NetworkManager.conf and comment the line: `dns=dnsmasq`. Then kill dnsmasq with this command (as root): `killall dnsmasq -9`
+- Windows Defender and other antivirus software may flag this tool. Add exclusions as needed for penetration testing purposes.
 
 - Any rogue server can be turned off in Responder.conf.
 
-- This tool is not meant to work on Windows.
-
-- For OSX, please note: Responder must be launched with an IP address for the -i flag (e.g. -i YOUR_IP_ADDR). There is no native support in OSX for custom interface binding. Using -i en1 will not work. Also to run Responder with the best experience, run the following as root:
-
-    launchctl unload /System/Library/LaunchDaemons/com.apple.Kerberos.kdc.plist
-
-    launchctl unload /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
-
-    launchctl unload /System/Library/LaunchDaemons/com.apple.smbd.plist
-
-    launchctl unload /System/Library/LaunchDaemons/com.apple.netbiosd.plist
+- For Windows: Responder must be launched with an IP address for the -i flag (e.g. -i YOUR_IP_ADDR). Use Windows_launcher.bat for automated setup.
 
 ## Usage ##
 
 First of all, please take a look at Responder.conf and tweak it for your needs.
 
-Running the tool:
+### Windows Usage ###
 
-    ./Responder.py [options]
+Option 1 - Using the Windows Launcher (Recommended):
 
-Typical Usage Example:
+    Windows_launcher.bat "Ethernet" -w -d
 
-    ./Responder.py -I eth0 -Pv
+Option 2 - Manual execution:
+
+    python Responder.py -i YOUR_IP_ADDRESS -w -d
+
+Typical Usage Examples:
+
+    Windows_launcher.bat "Wi-Fi" -Pv
+    python Responder.py -i 192.168.1.100 -w -d
 
 Options:
 

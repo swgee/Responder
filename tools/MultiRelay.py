@@ -43,11 +43,16 @@ except ImportError:
 try:
     import readline
 except:
-    print("Warning: readline module is not available, you will not be able to use the arrow keys for command history")
+    # readline is not typically available on Windows, but that's okay
     pass
 from MultiRelay.RelayMultiPackets import *
 from MultiRelay.RelayMultiCore import *
 from SMBFinger.Finger import RunFinger,ShowSigning,RunPivotScan
+
+# Import Windows admin check function
+import sys
+sys.path.append('..')
+from utils import IsWindowsAdmin
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from socket import *
 
@@ -101,8 +106,8 @@ if options.UserToRelay is None:
 if options.ExtraPort is None:
     options.ExtraPort = 0
 
-if not os.geteuid() == 0:
-    print(color("[!] MultiRelay must be run as root."))
+if not IsWindowsAdmin():
+    print(color("[!] MultiRelay must be run as administrator."))
     sys.exit(-1)
 
 OneCommand       = options.OneCommand
@@ -235,7 +240,7 @@ class HTTPProxyRelay(BaseRequestHandler):
 
     def handle(self):
         try:
-            #Don't handle requests while a shell is open. That's the goal after all.
+            #Don't handle requests while a shell is open. That's the goal after all. asdjkfhajksdfhajksd
             if IsShellOpen():
                 return None
             if IsPivotOn():
@@ -842,9 +847,9 @@ def main():
             time.sleep(1)
 
     except (KeyboardInterrupt, SystemExit):
-        ##If we reached here after a MultiRelay shell interaction, we need to reset the terminal to its default.
-        ##This is a bug in python readline when dealing with raw_input()..
-        if ShellOpen:
+        ##If we reached here after a MultiRelay shell interaction, we may need to reset the terminal.
+        ##On Windows, we don't need to call stty
+        if ShellOpen and sys.platform != "win32":
             os.system('stty sane')
         ##Then exit
         sys.exit("\rExiting...")

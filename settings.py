@@ -41,6 +41,36 @@ class Settings:
 	def toBool(self, str):
 		return str.upper() == 'ON'
 
+	def GenerateWindowsSSLCerts(self):
+		"""Generate SSL certificates for Windows using OpenSSL or PowerShell"""
+		try:
+			# Try using OpenSSL if available
+			cert_path = os.path.join(self.ResponderPATH, 'certs')
+			key_file = os.path.join(cert_path, 'responder.key')
+			crt_file = os.path.join(cert_path, 'responder.crt')
+			
+			# Create the command for Windows
+			openssl_cmd = [
+				'openssl', 'req', '-new', '-x509', '-keyout', key_file,
+				'-out', crt_file, '-days', '365', '-nodes',
+				'-subj', '/C=US/ST=Local/L=Local/O=Responder/CN=responder'
+			]
+			
+			subprocess.check_output(openssl_cmd, shell=True, stderr=subprocess.DEVNULL)
+			
+		except (subprocess.CalledProcessError, FileNotFoundError):
+			# Fallback: Create simple self-signed cert using PowerShell
+			try:
+				powershell_cmd = '''
+				$cert = New-SelfSignedCertificate -Subject "CN=responder" -CertStoreLocation "Cert:\\CurrentUser\\My" -KeyExportPolicy Exportable -KeySpec Signature -KeyLength 2048 -KeyAlgorithm RSA -HashAlgorithm SHA256
+				Export-Certificate -Cert $cert -FilePath "''' + os.path.join(self.ResponderPATH, 'certs', 'responder.crt') + '''"
+				$pwd = ConvertTo-SecureString -String "responder" -Force -AsPlainText
+				Export-PfxCertificate -Cert $cert -FilePath "''' + os.path.join(self.ResponderPATH, 'certs', 'responder.pfx') + '''" -Password $pwd
+				'''
+				subprocess.run(['powershell', '-Command', powershell_cmd], shell=True, capture_output=True)
+			except:
+				print("Warning: Could not generate SSL certificates automatically")
+
 	def ExpandIPRanges(self):
 		def expand_ranges(lst):	
 			ret = []
@@ -99,7 +129,7 @@ class Settings:
 
 	def populate(self, options):
 
-		if options.Interface == None and utils.IsOsX() == False:
+		if options.Interface == None and utils.IsWindows() == False:
 			print(utils.color("Error: -I <if> mandatory option is missing", 1))
 			sys.exit(-1)
 
@@ -348,32 +378,26 @@ class Settings:
 		if os.path.isfile(self.ResponderPATH+'/Responder.db'):
 			pass
 		else:
-			#If it's the first time, generate SSL certs for this Responder session and send openssl output to /dev/null
-			Certs = os.system(self.ResponderPATH+"/certs/gen-self-signed-cert.sh >/dev/null 2>&1")
+			#If it's the first time, generate SSL certs for this Responder session
+			self.GenerateWindowsSSLCerts()
 		
 		try:
-			NetworkCard = subprocess.check_output(["ifconfig", "-a"])
-		except:
-			try:
-				NetworkCard = subprocess.check_output(["ip", "address", "show"])
-			except subprocess.CalledProcessError as ex:
-				NetworkCard = "Error fetching Network Interfaces:", ex
-				pass
+			# Windows network configuration commands
+			NetworkCard = subprocess.check_output(["ipconfig", "/all"], shell=True)
+		except subprocess.CalledProcessError as ex:
+			NetworkCard = "Error fetching Network Interfaces: " + str(ex)
+			
 		try:
-			p = subprocess.Popen('resolvectl', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			DNS = p.stdout.read()
-		except:
-			p = subprocess.Popen(['cat', '/etc/resolv.conf'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			DNS = p.stdout.read()
+			# Windows DNS configuration
+			DNS = subprocess.check_output(["nslookup", "localhost"], shell=True)
+		except subprocess.CalledProcessError as ex:
+			DNS = "Error fetching DNS information: " + str(ex)
 
 		try:
-			RoutingInfo = subprocess.check_output(["netstat", "-rn"])
-		except:
-			try:
-				RoutingInfo = subprocess.check_output(["ip", "route", "show"])
-			except subprocess.CalledProcessError as ex:
-				RoutingInfo = "Error fetching Routing information:", ex
-				pass
+			# Windows routing table
+			RoutingInfo = subprocess.check_output(["route", "print"], shell=True)
+		except subprocess.CalledProcessError as ex:
+			RoutingInfo = "Error fetching Routing information: " + str(ex)
 
 		Message = "%s\nCurrent environment is:\nNetwork Config:\n%s\nDNS Settings:\n%s\nRouting info:\n%s\n\n"%(utils.HTTPCurrentDate(), NetworkCard.decode('latin-1'),DNS.decode('latin-1'),RoutingInfo.decode('latin-1'))
 		try:

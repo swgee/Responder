@@ -197,7 +197,7 @@ class NL_RECORD(Structure):
         ('DomainNameLength','<H=0'),
         ('EffectiveNameLength','<H=0'),
         ('FullNameLength','<H=0'),
-# Taken from https://github.com/gentilkiwi/mimikatz/blob/master/mimikatz/modules/kuhl_m_lsadump.h#L265
+# Taken from https://github.com/gentilkiwi/mimikatz/blob/master/mimikatz/modules/kuhl_m_lsadump.h#L265 asdfasdf
         ('LogonScriptName','<H=0'),
         ('ProfilePathLength','<H=0'),
         ('HomeDirectoryLength','<H=0'),
