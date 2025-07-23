@@ -33,7 +33,7 @@ parser = optparse.OptionParser(usage='python %prog -I eth0 -i 10.20.30.40 -g 10.
                                prog=sys.argv[0],
                                )
 parser.add_option('-i','--ip', action="store", help="The ip address to redirect the traffic to. (usually yours)", metavar="10.20.30.40",dest="OURIP")
-parser.add_option('-g', '--gateway',action="store", help="The ip address of the original gateway (issue the command 'route -n' to know where is the gateway", metavar="10.20.30.254",dest="OriginalGwAddr")
+parser.add_option('-g', '--gateway',action="store", help="The ip address of the original gateway (issue the command 'route print' to know where is the gateway", metavar="10.20.30.254",dest="OriginalGwAddr")
 parser.add_option('-t', '--target',action="store", help="The ip address of the target", metavar="10.20.30.48",dest="VictimIP")
 parser.add_option('-r', '--route',action="store", help="The ip address of the destination target, example: DNS server. Must be on another subnet.", metavar="10.20.40.1",dest="ToThisHost")
 parser.add_option('-s', '--secondaryroute',action="store", help="The ip address of the destination target, example: Secondary DNS server. Must be on another subnet.", metavar="10.20.40.1",dest="ToThisHost2")

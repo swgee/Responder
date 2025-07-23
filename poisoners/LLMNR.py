@@ -36,18 +36,45 @@ def Parse_LLMNR_Name(data):
 
 def IsICMPRedirectPlausible(IP):
 	dnsip = []
-	with open('/etc/resolv.conf', 'r') as file:
-		for line in file:
-			ip = line.split()
-			if len(ip) < 2:
-				continue
-			elif ip[0] == 'nameserver':
-				dnsip.extend(ip[1:])
+	try:
+		# Windows-compatible DNS server detection
+		import subprocess
+		import re
+		
+		# Use PowerShell to get DNS servers on Windows
+		result = subprocess.run([
+			'powershell', '-Command', 
+			'Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object {$_.ServerAddresses -ne $null} | Select-Object -ExpandProperty ServerAddresses'
+		], capture_output=True, text=True, shell=True)
+		
+		if result.returncode == 0:
+			# Parse PowerShell output
+			for line in result.stdout.strip().split('\n'):
+				line = line.strip()
+				if line and re.match(r'^\d+\.\d+\.\d+\.\d+$', line):
+					dnsip.append(line)
+		else:
+			# Fallback: try to parse nslookup output
+			try:
+				nslookup_result = subprocess.run(['nslookup', 'localhost'], capture_output=True, text=True, shell=True)
+				for line in nslookup_result.stdout.split('\n'):
+					if 'Address:' in line and '#53' not in line:
+						# Extract IP address from "Address: x.x.x.x" line
+						ip_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
+						if ip_match:
+							dnsip.append(ip_match.group(1))
+			except:
+				# Last resort: use common DNS servers for analysis
+				dnsip = ['8.8.8.8', '1.1.1.1']
+				
 		for x in dnsip:
 			if x != "127.0.0.1" and IsIPv6IP(x) is False and IsOnTheSameSubnet(x,IP) is False:	#Temp fix to ignore IPv6 DNS addresses
 				print(color("[Analyze mode: ICMP] You can ICMP Redirect on this network.", 5))
 				print(color("[Analyze mode: ICMP] This workstation (%s) is not on the same subnet than the DNS server (%s)." % (IP, x), 5))
 				print(color("[Analyze mode: ICMP] Use `python tools/Icmp-Redirect.py` for more details.", 5))
+	except Exception as e:
+		# If DNS detection fails, skip ICMP redirect analysis
+		pass
 
 if settings.Config.AnalyzeMode:
 	IsICMPRedirectPlausible(settings.Config.Bind_To)

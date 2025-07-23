@@ -28,12 +28,12 @@ import random
 try:
 	import netifaces
 except:
-	sys.exit('You need to install python-netifaces or run Responder with python3...\nTry "apt-get install python-netifaces" or "pip install netifaces"')
+	sys.exit('You need to install python-netifaces...\nTry "pip install netifaces" or install from requirements.txt')
 
 try:
 	import aioquic
 except:
-	sys.exit('You need to install aioquic...\nTry "apt-get install python-aioquic" or "pip install aioquic"')
+	sys.exit('You need to install aioquic...\nTry "pip install aioquic" or install from requirements.txt')
 
 from calendar import timegm
 

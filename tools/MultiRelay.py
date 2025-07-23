@@ -38,7 +38,7 @@ try:
     from Crypto.Hash import MD5
 except ImportError:
     print("\033[1;31m\nCrypto lib is not installed. You won't be able to live dump the hashes.")
-    print("You can install it on debian based os with this command: apt-get install python-crypto")
+    print("You can install it on Windows with this command: pip install pycryptodome")
     print("The Sam file will be saved anyway and you will have the bootkey.\033[0m\n")
 try:
     import readline
@@ -69,7 +69,7 @@ def color(txt, code = 1, modifier = 0):
 
 if os.path.isfile(SysSVCFileName) is False:
    print(color("[!]MultiRelay/bin/ folder is empty. You need to run these commands:\n",1,1))
-   print(color("apt-get install gcc-mingw-w64-x86-64",2,1))
+   print(color("Install Visual Studio Build Tools or Windows SDK for compilation",2,1))
    print(color("x86_64-w64-mingw32-gcc ./MultiRelay/bin/Runas.c -o ./MultiRelay/bin/Runas.exe -municode -lwtsapi32 -luserenv",2,1))
    print(color("x86_64-w64-mingw32-gcc ./MultiRelay/bin/Syssvc.c -o ./MultiRelay/bin/Syssvc.exe -municode",2,1))
    print(color("\nAdditionally, you can add your custom mimikatz executables (mimikatz.exe and mimikatz_x86.exe)\nin the MultiRelay/bin/ folder for the mimi32/mimi command.",3,1))
@@ -153,7 +153,7 @@ def ShowHelp():
     print(color('pivot  IP address',8,1)+'  -> Connect to another host (eg: pivot 10.0.0.12)')
     print(color('mimi  command',8,1)+'      -> Run a remote Mimikatz 64 bits command (eg: mimi coffee)')
     print(color('mimi32  command',8,1)+'    -> Run a remote Mimikatz 32 bits command (eg: mimi coffee)')
-    print(color('lcmd  command',8,1)+'      -> Run a local command and display the result in MultiRelay shell (eg: lcmd ifconfig)')
+    print(color('lcmd  command',8,1)+'      -> Run a local command and display the result in MultiRelay shell (eg: lcmd ipconfig)')
     print(color('help',8,1)+'               -> Print this message.')
     print(color('exit',8,1)+'               -> Exit this shell and return in relay mode.')
     print('                      If you want to quit type exit and then use CTRL-C\n')
